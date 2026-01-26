@@ -25,6 +25,8 @@ repo activity.
 
 A nice-to-have would be to extend this to provide a CLI interface to specify the GitHub username as an argument using something like Argparse
 
+Another nice-to-have would be to sleep/retry GitHub API calls to avoid rate limiting.
+
 ## Run tests
 To run the tests, use the following command:
 ```bash
@@ -33,4 +35,11 @@ pytest
 or alternatively using `uv`:
 ```bash
 uv run pytest
+```
+
+## Formatting/linting
+To run code formatting and linting, run the following:
+```bash
+ruff format
+ruff check --fix
 ```
