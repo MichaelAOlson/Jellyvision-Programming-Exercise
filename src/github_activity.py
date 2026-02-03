@@ -1,4 +1,5 @@
 import re
+from time import sleep
 from typing import Generator, Counter
 
 import requests
@@ -16,6 +17,22 @@ def validate_github_username(username: str) -> bool:
     return bool(match)
 
 
+def retry_fetch(url: str, params: dict[str, str]) -> requests.Response:
+    MAX_RETRIES = 10
+    for retry_count in range(MAX_RETRIES):
+        try:
+            resp = requests.get(url, params=params)
+            if resp.status_code == 200:
+                return resp
+        except Exception:
+            pass
+        finally:
+            sleep(0.1**retry_count)
+    raise Exception(
+        f"Failed to fetch data after {MAX_RETRIES} retries (most recent HTTP {resp.status_code}): {resp.content}"
+    )
+
+
 def fetch_user_activity(
     username: str,
     n_activities: int = 100,
@@ -31,9 +48,8 @@ def fetch_user_activity(
     activities_count = 0
     page = 1
     while activities_count < n_activities:
-        resp = requests.get(
-            f"https://api.github.com/users/{username}/events",
-            params={"page": page},
+        resp = retry_fetch(
+            url=f"https://api.github.com/users/{username}/events", params={"page": page}
         )
         if resp.status_code != 200:
             raise Exception(
